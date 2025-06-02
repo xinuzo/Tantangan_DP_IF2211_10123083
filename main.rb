@@ -1,10 +1,8 @@
 require 'fileutils' 
 
-# Konstanta untuk menandakan nilai yang belum dihitung atau tidak valid
 UNCOMPUTED = -1.0
 NO_PATH_MARKER = -1
 
-# Variabel global untuk memoization dan path traversing
 $memo = []
 $path_tracker = []
 $dist_matrix = []
@@ -12,11 +10,8 @@ $num_cities = 0
 $start_node = 0
 $all_visited_mask = 0
 
-# Fungsi rekursif TSP
-# current_city: kota saat ini
-# mask: bitmask kota yang sudah dikunjungi
-def solve_tsp_recursive(current_city, mask)
-  # Kasus dasar: semua kota telah dikunjungi, kembali ke kota awal
+def tsp_recursive(current_city, mask)
+  # base case: semua kota telah dikunjungi, kembali ke kota awal
   if mask == $all_visited_mask
     return $dist_matrix[current_city][$start_node]
   end
@@ -32,7 +27,7 @@ def solve_tsp_recursive(current_city, mask)
     # Jika kota 'next_city' belum dikunjungi (bitnya 0 di mask) dan ada jalur dari current_city ke next_city
     if (mask & (1 << next_city)).zero? && $dist_matrix[current_city][next_city] != Float::INFINITY
       new_mask = mask | (1 << next_city) # Tandai next_city sebagai dikunjungi
-      cost = $dist_matrix[current_city][next_city] + solve_tsp_recursive(next_city, new_mask)
+      cost = $dist_matrix[current_city][next_city] + tsp_recursive(next_city, new_mask)
 
       if cost < min_cost_for_current_state
         min_cost_for_current_state = cost
@@ -41,33 +36,29 @@ def solve_tsp_recursive(current_city, mask)
     end
   end
 
-  # Simpan hasil ke memoization table
   $memo[mask][current_city] = min_cost_for_current_state
-  $path_tracker[mask][current_city] = best_next_city_for_current_state # Simpan untuk rekonstruksi jalur
+  $path_tracker[mask][current_city] = best_next_city_for_current_state 
   min_cost_for_current_state
 end
 
-# Fungsi utama untuk mengatur dan memanggil solusi TSP
 def tsp_solver(input_matrix)
   $dist_matrix = input_matrix
   $num_cities = $dist_matrix.length
-
-  # Penanganan kasus sederhana
   return { cost: Float::INFINITY, path: ["Matrix jarak kosong atau tidak valid"] } if $num_cities.zero?
   if $num_cities == 1
     cost_one = $dist_matrix[0][0] == Float::INFINITY ? 0 : $dist_matrix[0][0]
-    return { cost: cost_one, path: [0, 0] } # Kota direpresentasikan dengan indeks 0-based
+    return { cost: cost_one, path: [0, 0] } 
   end
 
-  $start_node = 0 # Asumsi tur dimulai dan berakhir di kota dengan indeks 0
-  $all_visited_mask = (1 << $num_cities) - 1 # Mask jika semua kota dikunjungi
+  $start_node = 0 
+  $all_visited_mask = (1 << $num_cities) - 1 
 
-  # Inisialisasi tabel memoization dan path_tracker
+ 
   $memo = Array.new(1 << $num_cities) { Array.new($num_cities, UNCOMPUTED) }
   $path_tracker = Array.new(1 << $num_cities) { Array.new($num_cities, NO_PATH_MARKER) }
 
   initial_mask = (1 << $start_node)
-  min_total_cost = solve_tsp_recursive($start_node, initial_mask)
+  min_total_cost = tsp_recursive($start_node, initial_mask)
 
   if min_total_cost == Float::INFINITY
     return { cost: Float::INFINITY, path: ["Tidak ada tur yang valid ditemukan"] }
@@ -90,8 +81,7 @@ def tsp_solver(input_matrix)
   { cost: min_total_cost, path: tour }
 end
 
-# Fungsi untuk membaca matriks dari input user
-def read_matrix_from_interactive_input
+def read
   puts "Masukkan banyaknya jumlah kota (N):"
   n_str = gets.chomp
   unless n_str.match?(/^\d+$/) && n_str.to_i > 0
@@ -104,11 +94,11 @@ def read_matrix_from_interactive_input
   puts "Gunakan 'inf' atau angka yang sangat besar untuk jarak tak hingga."
   matrix = []
   n.times do |i|
-    print "Baris #{i + 1} (pisahkan angka dengan spasi): "
+    print "Baris #{i + 1}: "
     row_str = gets.chomp.split
     if row_str.length != n
-      puts "Error: Jumlah kolom tidak sesuai dengan N (#{n}). Harap ulangi input untuk baris ini."
-      redo # Ulangi iterasi saat ini (meminta input baris lagi)
+      puts "Error: Jumlah kolom tidak sesuai dengan N (#{n}). Ulangi input untuk baris ini."
+      redo 
     end
     begin
       row = row_str.map do |val|
@@ -116,16 +106,14 @@ def read_matrix_from_interactive_input
       end
       matrix << row
     rescue ArgumentError
-      puts "Error: Input tidak valid. Pastikan semua nilai adalah angka atau 'inf'. Harap ulangi input untuk baris ini."
-      redo # Ulangi iterasi saat ini
+      puts "Error: Input tidak valid. Pastikan semua nilai adalah angka atau 'inf'. Ulangi input untuk baris ini."
+      redo 
     end
   end
   matrix
 end
 
-# Fungsi output ke file 
-def write_output_to_file(result, output_dir = "output")
-  # Buat direktori output 
+def output(result, output_dir = "output") 
   FileUtils.mkdir_p(output_dir) unless File.directory?(output_dir)
 
   timestamp = Time.now.strftime("%Y%m%d_%H%M%S")
@@ -138,7 +126,7 @@ def write_output_to_file(result, output_dir = "output")
         file.puts "Optimal path: #{result[:path].join}" 
       else
         file.puts "Minimum cost: #{result[:cost]}"
-        adjusted_path = result[:path].map { |p| p + 1 } # Indeks kota dimulai dari 1
+        adjusted_path = result[:path].map { |p| p + 1 } 
         file.puts "Optimal path: #{adjusted_path.join(' -> ')}"
       end
     end
@@ -149,7 +137,7 @@ def write_output_to_file(result, output_dir = "output")
 end
 
 if __FILE__ == $PROGRAM_NAME
-  distance_matrix = read_matrix_from_interactive_input
+  distance_matrix = read
 
   if distance_matrix
     puts "\nAdjacent Matrix:"
@@ -167,7 +155,7 @@ if __FILE__ == $PROGRAM_NAME
       adjusted_path = result[:path].map { |p| p + 1 }
       puts "Optimal path: #{adjusted_path.join(' -> ')}"
     end
-    write_output_to_file(result)
+    output(result)
   else
     puts "Input matriks tidak berhasil."
   end
