@@ -8,15 +8,6 @@ Travelling Salesman Problem (TSP) adalah salah satu permasalahan optimasi perjal
 
 Program ini diimplementasikan dalam bahasa Ruby dan menyelesaikan permasalahan TSP menggunakan pendekatan rekursif berbasis Dynamic Programming dengan bitmasking dan memoization. Program meminta input berupa jumlah kota dan matriks ketetanggaan (biaya antar kota). Hasil yang ditampilkan mencakup rute optimal dan total biaya minimal.
 
-## Penjelasan Algoritma
-
-Program ini mengimplementasikan solusi Traveling Salesman Problem (TSP) menggunakan pendekatan pemrograman dinamis. Prinsip utama algoritma ini adalah memecah masalah besar menjadi sub-masalah yang lebih kecil dan dapat dikelola, kemudian menyelesaikannya secara bertahap.
-
-Sub-masalah dalam konteks ini didefinisikan sebagai "pencarian jalur terpendek yang mengunjungi himpunan bagian (subset) dari total kota dan berakhir di sebuah kota spesifik dalam himpunan tersebut". Solusi untuk sub-masalah yang lebih besar dibangun berdasarkan solusi dari sub-masalah yang lebih kecil yang telah dihitung sebelumnya.
-
-Untuk efisiensi, hasil dari setiap sub-masalah disimpan dalam sebuah struktur data (proses memoization) untuk menghindari perhitungan berulang. Representasi himpunan kota yang telah dikunjungi dikelola untuk setiap sub-rute.
-
-Setelah biaya minimum untuk mengunjungi semua kota ditemukan, langkah terakhir adalah menambahkan biaya untuk kembali ke kota awal. Hasilnya adalah total biaya minimum untuk keseluruhan tur.
 ## Struktur Proyek
 
 ```
