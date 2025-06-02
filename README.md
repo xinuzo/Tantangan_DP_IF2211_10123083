@@ -74,7 +74,7 @@ Setelah mendapatkan total biaya minimum, program menyusun kembali rute optimal d
 1. **Clone repositori**
 
    ```bash
-   $ git clone https://github.com/najwakahanifatima/DynamicProgrammingTSP.git
+   $ git clone https://github.com/xinuzo/Tantangan_DP_IF2211_10123083.git
    ```
 2. **Jalankan program**
 
