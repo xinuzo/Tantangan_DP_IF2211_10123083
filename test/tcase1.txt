@@ -1,12 +1,6 @@
 N = 4
 
-Matriks Jarak:
 0 10 15 20
 5 0 9 10
 6 13 0 12
 8 8 9 0
-
-Output yang Diharapkan (jika kota dimulai dari 1):
-Biaya Minimum Tur: 35
-Jalur Optimal (Kota Dimulai dari 1): 1 -> 2 -> 4 -> 3 -> 1
-(Jalur 0-based: 0 -> 1 -> 3 -> 2 -> 0)
