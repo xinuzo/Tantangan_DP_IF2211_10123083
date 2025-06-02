@@ -10,40 +10,13 @@ Program ini diimplementasikan dalam bahasa Ruby dan menyelesaikan permasalahan T
 
 ## Penjelasan Algoritma
 
-### Fungsi Utama: `tsp_solver`
+Program ini mengimplementasikan solusi Traveling Salesman Problem (TSP) menggunakan pendekatan pemrograman dinamis. Prinsip utama algoritma ini adalah memecah masalah besar menjadi sub-masalah yang lebih kecil dan dapat dikelola, kemudian menyelesaikannya secara bertahap.
 
-Fungsi ini menginisialisasi variabel global dan struktur data yang diperlukan:
+Sub-masalah dalam konteks ini didefinisikan sebagai "pencarian jalur terpendek yang mengunjungi himpunan bagian (subset) dari total kota dan berakhir di sebuah kota spesifik dalam himpunan tersebut". Solusi untuk sub-masalah yang lebih besar dibangun berdasarkan solusi dari sub-masalah yang lebih kecil yang telah dihitung sebelumnya.
 
-* `$dist_matrix`: Matriks jarak antar kota
-* `$memo[mask][city]`: Menyimpan biaya minimum untuk kombinasi kota yang telah dikunjungi (bitmask) dan posisi kota saat ini
-* `$path_tracker[mask][city]`: Menyimpan jejak kota berikutnya yang optimal untuk keperluan rekonstruksi jalur
-* `$all_visited_mask`: Nilai bitmask ketika semua kota telah dikunjungi (misal untuk 4 kota = `1111` dalam biner)
+Untuk efisiensi, hasil dari setiap sub-masalah disimpan dalam sebuah struktur data (proses memoization) untuk menghindari perhitungan berulang. Representasi himpunan kota yang telah dikunjungi dikelola untuk setiap sub-rute.
 
-Kemudian, program menjalankan fungsi rekursif `tsp_recursive(start_city, mask)` untuk menghitung biaya minimum, lalu merekonstruksi rute menggunakan informasi pada `$path_tracker`.
-
-### Fungsi Rekursif: `tsp_recursive(current_city, mask)`
-
-1. **Basis:**
-   Jika semua kota sudah dikunjungi (mask = `$all_visited_mask`), kembalikan jarak dari `current_city` ke kota awal.
-
-2. **Memoization:**
-   Jika hasil subproblem untuk `mask` dan `current_city` sudah dihitung sebelumnya, langsung kembalikan nilainya dari `$memo`.
-
-3. **Eksplorasi Kota Berikutnya:**
-   Iterasi ke semua kota yang belum dikunjungi dan memiliki jalur dari kota saat ini.
-
-   * Tandai kota baru sebagai dikunjungi (`new_mask = mask | (1 << next_city)`)
-   * Hitung biaya total: jarak dari `current_city` ke `next_city` ditambah hasil rekursif dari `next_city`
-   * Perbarui biaya minimum dan simpan jejak kota optimal di `$path_tracker`
-
-4. **Simpan hasil:**
-   Setelah mengevaluasi semua kemungkinan kota berikutnya, simpan hasil ke `$memo` dan kembalikan nilai minimum.
-
-### Rekonstruksi Jalur
-
-Setelah mendapatkan total biaya minimum, program menyusun kembali rute optimal dari data di `$path_tracker`, dimulai dari kota awal hingga semua kota telah dikunjungi, lalu kembali ke awal.
-
-
+Setelah biaya minimum untuk mengunjungi semua kota ditemukan, langkah terakhir adalah menambahkan biaya untuk kembali ke kota awal. Hasilnya adalah total biaya minimum untuk keseluruhan tur.
 ## Struktur Proyek
 
 ```
