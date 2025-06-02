@@ -91,4 +91,4 @@ Setelah mendapatkan total biaya minimum, program menyusun kembali rute optimal d
 
 | Nama           | NIM      | Kelas |
 | -------------- | -------- | ----- |
-| Rendi Adinata  | 10123083 | K01   |
+| Rendi Adinata  | 10123083 | K1    |
