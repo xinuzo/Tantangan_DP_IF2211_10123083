@@ -1,0 +1,10 @@
+N = 3
+
+Matriks Jarak:
+0 1 inf
+1 0 2
+inf inf 0
+
+Output yang Diharapkan:
+Biaya Minimum: Tak Terhingga
+Jalur: Tidak ada tur yang valid ditemukan (graf tidak terhubung?)
