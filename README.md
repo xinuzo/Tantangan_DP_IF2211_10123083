@@ -83,6 +83,8 @@ Setelah mendapatkan total biaya minimum, program menyusun kembali rute optimal d
    ```
 
 ## Contoh Kasus Uji
+![Screenshot 2025-06-02 204859](https://github.com/user-attachments/assets/6ebaf8fe-c01e-447b-9cd5-73aaf9b16dcb)
+
 
 
 ## Penulis
