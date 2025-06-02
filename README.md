@@ -1,4 +1,4 @@
-# Travelling Salesman Problem Using Dynamic Programming
+# Dynamic Programming Travelling Salesman Problem
 
 ## Permasalahan TSP (Travelling Salesman Problem)
 
