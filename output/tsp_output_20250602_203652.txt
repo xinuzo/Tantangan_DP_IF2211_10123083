@@ -1,0 +1,2 @@
+Minimum cost: 35
+Optimal path: 1 -> 2 -> 4 -> 3 -> 1

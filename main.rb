@@ -1,12 +1,10 @@
-# main.rb
-# Implementasi Traveling Salesman Problem (TSP) menggunakan Pemrograman Dinamis (Algoritma Held-Karp)
+require 'fileutils' 
 
 # Konstanta untuk menandakan nilai yang belum dihitung atau tidak valid
 UNCOMPUTED = -1.0
 NO_PATH_MARKER = -1
 
-# Variabel global untuk memoization dan pelacakan jalur
-# Akan diinisialisasi dalam fungsi tsp_solver
+# Variabel global untuk memoization dan path traversing
 $memo = []
 $path_tracker = []
 $dist_matrix = []
@@ -14,7 +12,7 @@ $num_cities = 0
 $start_node = 0
 $all_visited_mask = 0
 
-# Fungsi rekursif inti untuk TSP
+# Fungsi rekursif TSP
 # current_city: kota saat ini
 # mask: bitmask kota yang sudah dikunjungi
 def solve_tsp_recursive(current_city, mask)
@@ -31,8 +29,7 @@ def solve_tsp_recursive(current_city, mask)
 
   # Iterasi ke semua kota berikutnya yang memungkinkan
   (0...$num_cities).each do |next_city|
-    # Jika kota 'next_city' belum dikunjungi (bitnya 0 di mask)
-    # dan ada jalur dari current_city ke next_city
+    # Jika kota 'next_city' belum dikunjungi (bitnya 0 di mask) dan ada jalur dari current_city ke next_city
     if (mask & (1 << next_city)).zero? && $dist_matrix[current_city][next_city] != Float::INFINITY
       new_mask = mask | (1 << next_city) # Tandai next_city sebagai dikunjungi
       cost = $dist_matrix[current_city][next_city] + solve_tsp_recursive(next_city, new_mask)
@@ -66,108 +63,112 @@ def tsp_solver(input_matrix)
   $all_visited_mask = (1 << $num_cities) - 1 # Mask jika semua kota dikunjungi
 
   # Inisialisasi tabel memoization dan path_tracker
-  # Ukuran mask adalah 2^N
-  # $memo[mask][city_index]
   $memo = Array.new(1 << $num_cities) { Array.new($num_cities, UNCOMPUTED) }
-  # $path_tracker[mask][city_index] = next_city_in_optimal_path
   $path_tracker = Array.new(1 << $num_cities) { Array.new($num_cities, NO_PATH_MARKER) }
 
-  # Mask awal: hanya start_node yang dikunjungi
   initial_mask = (1 << $start_node)
-
-  # Panggil fungsi rekursif
   min_total_cost = solve_tsp_recursive($start_node, initial_mask)
 
-  # Rekonstruksi jalur jika solusi ditemukan
   if min_total_cost == Float::INFINITY
-    return { cost: Float::INFINITY, path: ["Tidak ada tur yang valid ditemukan (graf tidak terhubung?)"] }
+    return { cost: Float::INFINITY, path: ["Tidak ada tur yang valid ditemukan"] }
   end
 
-  # Rekonstruksi jalur
-  tour = [$start_node] # Jalur dimulai dari start_node
+  tour = [$start_node]
   current_mask_for_reconstruction = initial_mask
   current_city_for_reconstruction = $start_node
 
   while current_mask_for_reconstruction != $all_visited_mask
     next_c_in_tour = $path_tracker[current_mask_for_reconstruction][current_city_for_reconstruction]
-
     if next_c_in_tour == NO_PATH_MARKER
-      # Ini seharusnya tidak terjadi jika min_total_cost valid dan N > 1
       return { cost: min_total_cost, path: ["Error saat merekonstruksi jalur."] }
     end
-
     tour << next_c_in_tour
-    current_mask_for_reconstruction |= (1 << next_c_in_tour) # Update mask
-    current_city_for_reconstruction = next_c_in_tour       # Pindah ke kota berikutnya
+    current_mask_for_reconstruction |= (1 << next_c_in_tour)
+    current_city_for_reconstruction = next_c_in_tour
   end
-
-  tour << $start_node # Kembali ke kota awal untuk melengkapi siklus
-
-  # Mengubah indeks menjadi 1-based untuk output jika diinginkan, atau tetap 0-based
-  # Untuk konsistensi dengan banyak contoh, kita akan tampilkan 0-based lalu bisa di-map jika perlu.
+  tour << $start_node
   { cost: min_total_cost, path: tour }
 end
 
-# Fungsi untuk membaca matriks dari input pengguna
-def read_matrix_from_input
-  puts "Masukkan jumlah kota (N):"
-  n = gets.to_i
-  if n <= 0
-    puts "Jumlah kota tidak valid."
+# Fungsi untuk membaca matriks dari input user
+def read_matrix_from_interactive_input
+  puts "Masukkan banyaknya jumlah kota (N):"
+  n_str = gets.chomp
+  unless n_str.match?(/^\d+$/) && n_str.to_i > 0
+    puts "Error: Jumlah kota (N) tidak valid. Harus berupa angka positif."
     return nil
   end
+  n = n_str.to_i
 
-  puts "Masukkan matriks jarak (N baris, N kolom, pisahkan angka dengan spasi):"
+  puts "Masukkan adjacent matrix: "
   puts "Gunakan 'inf' atau angka yang sangat besar untuk jarak tak hingga."
   matrix = []
   n.times do |i|
-    print "Baris #{i + 1}: "
+    print "Baris #{i + 1} (pisahkan angka dengan spasi): "
     row_str = gets.chomp.split
     if row_str.length != n
-      puts "Jumlah kolom tidak sesuai dengan N. Harap ulangi."
-      return nil # Atau minta input ulang untuk baris ini
+      puts "Error: Jumlah kolom tidak sesuai dengan N (#{n}). Harap ulangi input untuk baris ini."
+      redo # Ulangi iterasi saat ini (meminta input baris lagi)
     end
-    row = row_str.map do |val|
-      val.downcase == 'inf' ? Float::INFINITY : val.to_i
+    begin
+      row = row_str.map do |val|
+        val.downcase == 'inf' ? Float::INFINITY : Integer(val)
+      end
+      matrix << row
+    rescue ArgumentError
+      puts "Error: Input tidak valid. Pastikan semua nilai adalah angka atau 'inf'. Harap ulangi input untuk baris ini."
+      redo # Ulangi iterasi saat ini
     end
-    matrix << row
   end
   matrix
 end
 
+# Fungsi output ke file 
+def write_output_to_file(result, output_dir = "output")
+  # Buat direktori output 
+  FileUtils.mkdir_p(output_dir) unless File.directory?(output_dir)
 
-# --- Program Utama Dimulai Di Sini ---
+  timestamp = Time.now.strftime("%Y%m%d_%H%M%S")
+  output_filename = File.join(output_dir, "tsp_output_#{timestamp}.txt")
+
+  begin
+    File.open(output_filename, "w") do |file|
+      if result[:cost] == Float::INFINITY
+        file.puts "Minimum cost: INFINITY"
+        file.puts "Optimal path: #{result[:path].join}" 
+      else
+        file.puts "Minimum cost: #{result[:cost]}"
+        adjusted_path = result[:path].map { |p| p + 1 } # Indeks kota dimulai dari 1
+        file.puts "Optimal path: #{adjusted_path.join(' -> ')}"
+      end
+    end
+    puts "Output berhasil ditulis ke: #{output_filename}"
+  rescue StandardError => e
+    puts "Error saat menulis output ke file: #{e.message}"
+  end
+end
+
 if __FILE__ == $PROGRAM_NAME
-  puts "======================================================"
-  puts "  Program Penyelesaian Traveling Salesman Problem   "
-  puts "     Menggunakan Pemrograman Dinamis (Held-Karp)    "
-  puts "======================================================"
-  puts
-
-  # Baca matriks dari input pengguna
-  distance_matrix = read_matrix_from_input
+  distance_matrix = read_matrix_from_interactive_input
 
   if distance_matrix
-    puts "\nMatriks Jarak yang Dimasukkan:"
+    puts "\nAdjacent Matrix:"
     distance_matrix.each do |row|
       puts row.map { |val| val == Float::INFINITY ? "INF" : val }.join("\t")
     end
     puts
-
     result = tsp_solver(distance_matrix)
 
-    puts "------------------------------------------------------"
     if result[:cost] == Float::INFINITY
-      puts "Biaya Minimum: Tak Terhingga"
-      puts "Jalur: #{result[:path].join}" # Akan berisi pesan error
+      puts "Minimum cost: INFINITY"
+      puts "Optimal path: #{result[:path].join}" 
     else
-      puts "Biaya Minimum Tur: #{result[:cost]}"
-      # Menampilkan jalur dengan indeks kota dimulai dari 1 untuk kemudahan pembacaan pengguna
+      puts "Minimum cost: #{result[:cost]}"
       adjusted_path = result[:path].map { |p| p + 1 }
-      puts "Jalur Optimal (Kota Dimulai dari 1): #{adjusted_path.join(' -> ')}"
+      puts "Optimal path: #{adjusted_path.join(' -> ')}"
     end
-    puts "------------------------------------------------------"
+    write_output_to_file(result)
   else
-    puts "Input matriks tidak berhasil. Program berhenti."
+    puts "Input matriks tidak berhasil."
   end
 end

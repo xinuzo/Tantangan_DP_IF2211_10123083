@@ -1,0 +1,2 @@
+Minimum cost: INFINITY
+Optimal path: Tidak ada tur yang valid ditemukan
